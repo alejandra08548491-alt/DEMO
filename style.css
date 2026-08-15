@@ -1345,6 +1345,8 @@ input[type="file"] {
 
     box-shadow:
         4px 5px 0 rgba(74, 51, 36, 0.12);
+
+    touch-action: pan-y;
 }
 
 
@@ -1739,7 +1741,8 @@ input[type="file"] {
         transform 0.12s ease,
         box-shadow 0.12s ease,
         background 0.12s ease,
-        color 0.12s ease;
+        color 0.12s ease,
+        opacity 0.12s ease;
 }
 
 
@@ -1788,6 +1791,18 @@ input[type="file"] {
     transform: translateY(1px);
 
     box-shadow: 0 1px 0 rgba(74, 51, 36, 0.35);
+}
+
+
+/* Estado visual para cuando la acción de la píldora no aplica
+   (por ejemplo, "eliminar página" estando en la portada). Se deja
+   clickeable a propósito para poder mostrar un aviso explicativo. */
+.btn--pill-deshabilitado {
+    opacity: 0.45;
+}
+
+.btn--pill-deshabilitado:hover {
+    transform: none;
 }
 
 
@@ -2014,6 +2029,7 @@ input:focus-visible {
     width: min(100%, 560px);
     aspect-ratio: 216 / 279;
     flex: 1;
+    touch-action: pan-y;
 }
 
 .book-viewer__stage .preview-sheet {
