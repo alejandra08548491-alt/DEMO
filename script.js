@@ -14,18 +14,40 @@ const FONDOS = Array.from(
 const LINEA_FONDO_COLOR = "rgba(74, 51, 36, 0.4)";
 
 
-/* Genera las líneas de cuaderno como una imagen SVG en mosaico.
-   No se usa repeating-linear-gradient porque html2canvas (el que
-   arma el PDF) no lo soporta y las líneas desaparecían al descargar. */
+/* Genera las líneas de cuaderno como una imagen PNG en mosaico,
+   dibujada con <canvas> y exportada como data URL.
+   Antes se generaba con un <svg> embebido en la URL de datos, pero
+   ese enfoque falla al descargar el PDF en varios navegadores
+   móviles (sobre todo Safari/iOS y en modo de navegación privada):
+   html2canvas no logra "pintar" ese fondo SVG de forma confiable y
+   el PDF sale con un error o sin las líneas. Un PNG generado por
+   canvas es mucho más compatible. */
 function fondoLineasDataUrl(colorLinea) {
 
-    const svg =
-        `<svg xmlns='http://www.w3.org/2000/svg' width='200' height='38'>` +
-        `<line x1='0' y1='37.5' x2='200' y2='37.5' stroke='${colorLinea}' stroke-width='1'/>` +
-        `</svg>`;
+    const canvas =
+        document.createElement("canvas");
+
+    canvas.width = 200;
+
+    canvas.height = 38;
+
+    const ctx =
+        canvas.getContext("2d");
+
+    ctx.strokeStyle = colorLinea;
+
+    ctx.lineWidth = 1;
+
+    ctx.beginPath();
+
+    ctx.moveTo(0, 37.5);
+
+    ctx.lineTo(200, 37.5);
+
+    ctx.stroke();
 
 
-    return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
+    return `url("${canvas.toDataURL("image/png")}")`;
 
 }
 
@@ -133,6 +155,177 @@ function elementoAleatorio(lista) {
         )
         ]
         : null;
+
+}
+
+
+/* Detecta un gesto de deslizar (swipe) horizontal sobre un elemento
+   y llama a onSwipeLeft / onSwipeRight. Pensado mobile-first:
+   - Ignora el gesto si empieza sobre un textarea, input o botón,
+     para no interferir con escribir o seleccionar texto ni con
+     los botones normales.
+   - Solo "roba" el gesto de scroll de la página (preventDefault)
+     una vez que queda claro que el dedo se mueve más en horizontal
+     que en vertical, para no romper el scroll vertical normal. */
+function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
+
+    if (!elemento) return;
+
+
+    let inicioX = 0;
+
+    let inicioY = 0;
+
+    let activo = false;
+
+    let esHorizontal = false;
+
+
+    const UMBRAL_MIN = 50;
+
+
+    elemento.addEventListener(
+        "touchstart",
+        (evento) => {
+
+            if (evento.touches.length !== 1) {
+
+                activo = false;
+
+                return;
+
+            }
+
+
+            const objetivo =
+                evento.target;
+
+
+            if (
+                objetivo.closest(
+                    "textarea, input, button, select, a"
+                )
+            ) {
+
+                activo = false;
+
+                return;
+
+            }
+
+
+            inicioX =
+                evento.touches[0].clientX;
+
+
+            inicioY =
+                evento.touches[0].clientY;
+
+
+            activo = true;
+
+            esHorizontal = false;
+
+        },
+        { passive: true }
+    );
+
+
+    elemento.addEventListener(
+        "touchmove",
+        (evento) => {
+
+            if (!activo) return;
+
+
+            const dx =
+                evento.touches[0].clientX - inicioX;
+
+
+            const dy =
+                evento.touches[0].clientY - inicioY;
+
+
+            if (
+                !esHorizontal &&
+                Math.abs(dx) > 10 &&
+                Math.abs(dx) > Math.abs(dy)
+            ) {
+
+                esHorizontal = true;
+
+            }
+
+
+            /* Solo bloqueamos el scroll de la página cuando ya
+               sabemos que es un swipe horizontal de verdad. */
+            if (esHorizontal && evento.cancelable) {
+
+                evento.preventDefault();
+
+            }
+
+        },
+        { passive: false }
+    );
+
+
+    function terminar(evento) {
+
+        if (!activo) return;
+
+        activo = false;
+
+
+        if (!evento.changedTouches || !evento.changedTouches.length) return;
+
+
+        const toque =
+            evento.changedTouches[0];
+
+
+        const dx =
+            toque.clientX - inicioX;
+
+
+        const dy =
+            toque.clientY - inicioY;
+
+
+        if (Math.abs(dx) < UMBRAL_MIN) return;
+
+        if (Math.abs(dx) < Math.abs(dy)) return;
+
+
+        if (dx < 0) {
+
+            onSwipeLeft?.();
+
+        } else {
+
+            onSwipeRight?.();
+
+        }
+
+    }
+
+
+    elemento.addEventListener(
+        "touchend",
+        terminar,
+        { passive: true }
+    );
+
+
+    elemento.addEventListener(
+        "touchcancel",
+        () => {
+
+            activo = false;
+
+        },
+        { passive: true }
+    );
 
 }
 
@@ -1379,8 +1572,29 @@ function elementoAleatorio(lista) {
             paginas.length - 1;
 
 
-        btnEliminarPagina.hidden =
-            esPortada;
+        /* El botón "eliminar página" se deja siempre visible.
+           En la portada se muestra atenuado y, si se toca, explica
+           por qué no se puede eliminar, en vez de solo ocultarse. */
+
+        btnEliminarPagina.hidden = false;
+
+
+        btnEliminarPagina.classList.toggle(
+            "btn--pill-deshabilitado",
+            esPortada
+        );
+
+
+        btnEliminarPagina.setAttribute(
+            "aria-disabled",
+            esPortada ? "true" : "false"
+        );
+
+
+        btnEliminarPagina.dataset.tooltip =
+            esPortada
+                ? "No puedes eliminar la portada"
+                : "Eliminar esta página";
 
 
         /* Botón "agregar imagen": deshabilitado solo en la portada */
@@ -1751,7 +1965,15 @@ function elementoAleatorio(lista) {
             if (
                 paginas[paginaActual].tipo ===
                 "portada"
-            ) return;
+            ) {
+
+                mostrarToast(
+                    "No puedes eliminar la portada"
+                );
+
+                return;
+
+            }
 
 
             const confirmar =
@@ -2217,6 +2439,37 @@ function elementoAleatorio(lista) {
     );
 
 
+    /* Deslizar con el dedo en la vista previa: izquierda = siguiente,
+       derecha = anterior (como pasar la hoja de un libro). */
+    agregarSwipe(
+        previewStage,
+        () => {
+
+            if (previewIndice < paginas.length - 1) {
+
+                mostrarPaginaPreview(
+                    previewIndice + 1,
+                    "next"
+                );
+
+            }
+
+        },
+        () => {
+
+            if (previewIndice > 0) {
+
+                mostrarPaginaPreview(
+                    previewIndice - 1,
+                    "prev"
+                );
+
+            }
+
+        }
+    );
+
+
     /* =====================================================
        ABRIR / CERRAR VISTA PREVIA
        ===================================================== */
@@ -2292,40 +2545,52 @@ function elementoAleatorio(lista) {
        NAVEGACIÓN DEL EDITOR — ANTERIOR / SIGUIENTE
        ===================================================== */
 
-    btnAnterior.addEventListener(
-        "click",
-        () => {
+    function irPaginaAnterior() {
 
-            if (
-                paginaActual > 0
-            ) {
+        if (paginaActual > 0) {
 
-                paginaActual--;
+            paginaActual--;
 
-                renderPagina();
-
-            }
+            renderPagina();
 
         }
+
+    }
+
+
+    function irPaginaSiguiente() {
+
+        if (paginaActual < paginas.length - 1) {
+
+            paginaActual++;
+
+            renderPagina();
+
+        }
+
+    }
+
+
+    btnAnterior.addEventListener(
+        "click",
+        irPaginaAnterior
     );
 
 
     btnSiguiente.addEventListener(
         "click",
-        () => {
+        irPaginaSiguiente
+    );
 
-            if (
-                paginaActual <
-                paginas.length - 1
-            ) {
 
-                paginaActual++;
-
-                renderPagina();
-
-            }
-
-        }
+    /* Deslizar con el dedo directamente sobre la hoja del editor
+       también cambia de página (izquierda = siguiente, derecha =
+       anterior). Los botones "anterior"/"siguiente" se conservan
+       funcionando igual que antes. */
+    agregarSwipe(
+        hoja,
+        irPaginaSiguiente,
+        irPaginaAnterior
     );
 
 
@@ -2339,6 +2604,51 @@ function elementoAleatorio(lista) {
         return texto
             .replace(/[\\/:*?"<>|]+/g, "")
             .trim();
+
+    }
+
+
+    /* Se asegura de que la tipografía elegida ya esté cargada por
+       el navegador antes de "fotografiar" cada hoja con html2canvas.
+       Sin esto, en algunos celulares la primera descarga puede usar
+       una fuente de repuesto y verse distinta a lo que se ve en
+       pantalla. */
+    async function esperarFuentesListas() {
+
+        if (
+            !document.fonts ||
+            !document.fonts.ready
+        ) return;
+
+
+        try {
+
+            await document.fonts.load(
+                `700 32px "${config.tipografia}"`
+            );
+
+
+            await document.fonts.load(
+                `400 20px "${config.tipografia}"`
+            );
+
+        } catch (error) {
+
+            /* Si no se puede precargar puntualmente, igual
+               seguimos con document.fonts.ready más abajo. */
+
+        }
+
+
+        try {
+
+            await document.fonts.ready;
+
+        } catch (error) {
+
+            /* Ignorar: no todos los navegadores exponen esto igual. */
+
+        }
 
     }
 
@@ -2435,6 +2745,9 @@ function elementoAleatorio(lista) {
 
 
         try {
+
+            await esperarFuentesListas();
+
 
             const { jsPDF } =
                 window.jspdf;
