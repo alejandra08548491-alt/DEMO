@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tu libro</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Kalam:wght@400;700&family=Sacramento&family=Homemade+Apple&family=Shadows+Into+Light&family=Dancing+Script:wght@600;700&family=Patrick+Hand&family=Amatic+SC:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Librerías para generar el PDF descargable en el navegador -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="fondo-1">
+    <div class="paper-texture" aria-hidden="true"></div>
+
+    <div class="page page--empty" id="sin-datos" hidden>
+        <p class="empty-msg">No encontramos la configuración de tu libro.</p>
+        <a href="index.html" class="btn btn--seal">Volver a empezar</a>
+    </div>
+
+    <div class="page editor" id="editor" hidden>
+        <header class="editor__top">
+            <a href="index.html" class="btn--back">← cambiar configuración</a>
+
+            <div class="editor__top-right">
+
+                <div class="frases-trigger">
+
+                    <button type="button" class="btn-icon" id="btn-frases" aria-haspopup="true" aria-expanded="false" aria-controls="frases-popover" data-tooltip="Ideas de frases">
+
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M9 18h6" />
+                            <path d="M10 21h4" />
+                            <path d="M12 3a6 6 0 0 0-3.6 10.8c.5.4.8 1 .8 1.7V16h5.6v-.5c0-.7.3-1.3.8-1.7A6 6 0 0 0 12 3Z" />
+                        </svg>
+
+                    </button>
+
+
+                    <div class="frases-popover" id="frases-popover" hidden>
+
+                        <div class="frases-popover__header">
+
+                            <p class="frases-popover__title">Ideas de frases</p>
+
+                            <button type="button" class="frases-popover__close" id="frases-cerrar" aria-label="Cerrar">
+                                ×
+                            </button>
+
+                        </div>
+
+                        <p class="frases-popover__hint">
+                            Toca el ícono de copiar para llevarte una frase a tu página.
+                        </p>
+
+                        <ul class="frases-popover__list" id="frases-lista">
+                            <!-- Se llena mediante JavaScript -->
+                        </ul>
+
+                    </div>
+
+                </div>
+
+
+                <p class="editor__pagenum" id="pagenum">Página 1 / 1</p>
+
+            </div>
+
+        </header>
+
+        <div class="editor__sheet" id="hoja"></div>
+
+        <!-- =====================================================
+         BARRA DE HERRAMIENTAS DE LA PÁGINA (imagen)
+    ====================================================== -->
+        <div class="editor__toolbar">
+
+            <button type="button" class="btn btn--icon-text" id="btn-agregar-imagen" disabled
+                data-tooltip="No puedes agregar fotos en la portada">
+                📷 Agregar imagen
+            </button>
+
+            <input type="file" id="input-imagen-pagina" accept="image/*" hidden>
+
+            <button type="button" class="btn--eliminar-imagen" id="btn-quitar-imagen" hidden>
+                ✕ Quitar foto
+            </button>
+
+        </div>
+
+        <nav class="editor__nav">
+            <button type="button" class="btn btn--ghost" id="btn-anterior">← anterior</button>
+            <button type="button" class="btn btn--ghost" id="btn-siguiente">siguiente →</button>
+        </nav>
+
+        <div class="editor__nav-middle">
+
+            <button type="button" class="btn--pill btn--add-page" id="btn-agregar-pagina"
+                data-tooltip="Agregar una página nueva">
+                + agregar página
+            </button>
+
+            <button type="button" class="btn--pill btn--remove-page" id="btn-eliminar-pagina" hidden
+                data-tooltip="Eliminar esta página">
+                🗑 eliminar página
+            </button>
+
+        </div>
+
+        <div class="editor__actions">
+            <button type="button" class="btn btn--preview" id="btn-preview">Vista previa</button>
+            <button type="button" class="btn btn--pdf" id="btn-descargar-pdf">⬇ Descargar PDF</button>
+        </div>
+
+        <p class="editor__future">La vista previa no finaliza ni borra tu libro. Puedes volver al editor cuando quieras.</p>
+    </div>
+
+    <!-- Vista previa: se muestra en esta misma página para conservar todos los datos en memoria. -->
+    <section class="preview-screen" id="preview-screen" hidden aria-label="Vista previa del libro">
+        <header class="preview-screen__top">
+            <button type="button" class="btn--back" id="btn-volver-editor-bottom">← seguir editando</button>
+            <p class="editor__pagenum" id="preview-pagenum">Vista previa</p>
+        </header>
+
+        <div class="book-viewer">
+
+            <button type="button" class="book-viewer__arrow book-viewer__arrow--prev" id="preview-prev"
+                aria-label="Página anterior">
+                ‹
+            </button>
+
+            <div class="book-viewer__stage" id="preview-stage"></div>
+
+            <button type="button" class="book-viewer__arrow book-viewer__arrow--next" id="preview-next"
+                aria-label="Página siguiente">
+                ›
+            </button>
+
+        </div>
+
+        <div class="preview-screen__bottom">
+            <button type="button" class="btn btn--pdf" id="btn-descargar-pdf-2">⬇ Descargar PDF</button>
+        </div>
+    </section>
+
+    <div class="toast" id="toast" aria-live="polite"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
