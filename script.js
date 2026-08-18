@@ -5,10 +5,21 @@
 
 const CLAVE_SESION = "libro:config";
 
-const FONDOS = Array.from(
-    { length: 12 },
-    (_, i) => `img/${i + 1}.jpeg`
-);
+/* Guarda temporalmente el texto y las fotos ya escritas cuando el
+   usuario elige "cambiar solo el formato" desde el editor, para
+   que index.html pueda mandarlas de vuelta a libro.html junto con
+   la nueva configuración, sin perder lo que ya había hecho. */
+const CLAVE_PAGINAS = "libro:paginas";
+
+/* Antes había acá un arreglo FONDOS fijo (12 imágenes, numeradas
+   desde 1) con matemática de índices para traducir el id del fondo
+   elegido a su URL. Eso se rompía cada vez que se agregaban o
+   quitaban fondos en index.html (como pasó al pasar de 12 a 15
+   fondos numerados desde 0): los números dejaban de coincidir y
+   terminaba mostrando siempre el mismo fondo por error.
+   Ahora la URL se toma directo del "src" de la imagen que ya está
+   en el HTML (ver seleccionarFondoImagen), así que no importa
+   cuántos fondos haya ni cómo estén numerados. */
 
 /* Color de las líneas de cuaderno cuando se usa un fondo personalizado */
 const LINEA_FONDO_COLOR = "rgba(74, 51, 36, 0.4)";
@@ -393,11 +404,32 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
     /* fondoTipo: 'imagen' | 'color' */
     let fondoTipo = "imagen";
 
-    let fondoElegido = "1";
+    let fondoElegido = "0";
+
+    let fondoUrlElegida = "img/0.jpeg";
 
     let fondoColorElegido = fondoColorRadios[0]
         ? fondoColorRadios[0].value
         : "#f3ead9";
+
+
+    /* Lee la URL real de la imagen de una tarjeta de fondo, en vez
+       de calcularla a partir de su id. Así no importa cuántos
+       fondos haya ni cómo estén numerados. */
+    function urlDeTarjetaFondo(card) {
+
+        const img =
+            card?.querySelector(
+                ".fondo-card__preview"
+            );
+
+
+        return (
+            img?.getAttribute("src") ||
+            `img/${card?.dataset.fondo}.jpeg`
+        );
+
+    }
 
 
     /* Si ninguna tarjeta de fondo quedó marcada en el HTML
@@ -412,23 +444,31 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
             );
 
 
-        if (marcada) {
+        const tarjeta =
+            marcada || fondoCards[0];
 
-            fondoElegido =
-                marcada.dataset.fondo;
 
-        } else if (fondoCards[0]) {
+        if (!tarjeta) return;
 
-            fondoCards[0].setAttribute(
+
+        if (!marcada) {
+
+            tarjeta.setAttribute(
                 "aria-pressed",
                 "true"
             );
 
-
-            fondoElegido =
-                fondoCards[0].dataset.fondo;
-
         }
+
+
+        fondoElegido =
+            tarjeta.dataset.fondo;
+
+
+        fondoUrlElegida =
+            urlDeTarjetaFondo(
+                tarjeta
+            );
 
     })();
 
@@ -459,6 +499,12 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
         fondoElegido =
             card.dataset.fondo;
+
+
+        fondoUrlElegida =
+            urlDeTarjetaFondo(
+                card
+            );
 
 
         fondoColorRadios.forEach((r) => {
@@ -782,6 +828,42 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
 
     /* =====================================================
+       AVISO SI VENIMOS DE "CAMBIAR SOLO EL FORMATO"
+       ===================================================== */
+
+    (function avisarSiHayLibroEnCurso() {
+
+        const hayPaginasGuardadas =
+            Boolean(
+                sessionStorage.getItem(
+                    CLAVE_PAGINAS
+                )
+            );
+
+
+        if (!hayPaginasGuardadas) return;
+
+
+        if (ctaHint) {
+
+            ctaHint.textContent =
+                "Vas a seguir con el texto y las fotos que ya tenías: " +
+                "elige la nueva presentación y toca el botón para continuar.";
+
+        }
+
+
+        if (btnGenerar) {
+
+            btnGenerar.textContent =
+                "Continuar mi libro";
+
+        }
+
+    })();
+
+
+    /* =====================================================
        EMPEZAR LIBRO
        ===================================================== */
 
@@ -811,9 +893,7 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
                     fondoUrl:
                         fondoTipo === "imagen"
-                            ? FONDOS[
-                            Number(fondoElegido) - 1
-                            ]
+                            ? fondoUrlElegida
                             : null,
 
 
@@ -918,6 +998,46 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
         document.getElementById("btn-quitar-imagen");
 
 
+    const arrastrarHint =
+        document.getElementById("arrastrar-hint");
+
+
+    const editorEstilo =
+        document.getElementById("editor-estilo");
+
+
+    const botonesForma =
+        Array.from(
+            document.querySelectorAll(
+                "#grupo-forma-foto .segmentado__opcion"
+            )
+        );
+
+
+    const botonesMarco =
+        Array.from(
+            document.querySelectorAll(
+                "#grupo-marco-foto .segmentado__opcion"
+            )
+        );
+
+
+    const botonesAlinear =
+        Array.from(
+            document.querySelectorAll(
+                "#grupo-alinear-texto .segmentado__opcion"
+            )
+        );
+
+
+    const btnNegrita =
+        document.getElementById("btn-negrita");
+
+
+    const btnCursiva =
+        document.getElementById("btn-cursiva");
+
+
     const btnPreview =
         document.getElementById("btn-preview");
 
@@ -976,7 +1096,31 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
         document.getElementById("toast");
 
 
-    const LIMITE_CARACTERES = 250;
+    const btnCambiarConfig =
+        document.getElementById("btn-cambiar-config");
+
+
+    const modalConfig =
+        document.getElementById("modal-config");
+
+
+    const btnModalCambiarFormato =
+        document.getElementById(
+            "btn-modal-cambiar-formato"
+        );
+
+
+    const btnModalNuevoLibro =
+        document.getElementById(
+            "btn-modal-nuevo-libro"
+        );
+
+
+    const btnModalCerrar =
+        document.getElementById("btn-modal-cerrar");
+
+
+    const LIMITE_CARACTERES = 500;
 
 
     const dataGuardada =
@@ -1035,6 +1179,72 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
     let paginaActual = 0;
 
 
+    /* Si el usuario venía de "cambiar solo el formato" en el paso
+       anterior, acá recuperamos el texto y las fotos que ya tenía,
+       en vez de arrancar de nuevo solo con la portada vacía. Es de
+       un solo uso: se borra apenas se lee, para no reaparecer si
+       se recarga la página o se elige "empezar un libro nuevo" más
+       adelante. */
+    (function recuperarPaginasGuardadas() {
+
+        const guardado =
+            sessionStorage.getItem(
+                CLAVE_PAGINAS
+            );
+
+
+        if (!guardado) return;
+
+
+        try {
+
+            const datos =
+                JSON.parse(
+                    guardado
+                );
+
+
+            if (
+                datos &&
+                Array.isArray(datos.paginas) &&
+                datos.paginas.length &&
+                datos.paginas[0]?.tipo === "portada"
+            ) {
+
+                paginas =
+                    datos.paginas;
+
+
+                paginaActual =
+                    Number.isInteger(datos.paginaActual)
+                        ? Math.max(
+                            0,
+                            Math.min(
+                                datos.paginaActual,
+                                paginas.length - 1
+                            )
+                        )
+                        : 0;
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                error
+            );
+
+        } finally {
+
+            sessionStorage.removeItem(
+                CLAVE_PAGINAS
+            );
+
+        }
+
+    })();
+
+
     /* =====================================================
        TAMAÑO DE PÁGINA — siempre Carta
        ===================================================== */
@@ -1080,14 +1290,12 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
     function fondoUrl() {
 
+        /* config.fondoUrl ya viene resuelto desde index.html (la
+           URL real de la imagen elegida). Si por algo llegara
+           vacío, usamos un fondo por defecto razonable. */
         return (
             config.fondoUrl ||
-            FONDOS[
-            Number(
-                config.fondo || 1
-            ) - 1
-            ] ||
-            FONDOS[0]
+            "img/0.jpeg"
         );
 
     }
@@ -1547,6 +1755,350 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
 
     /* =====================================================
+       ESTILO DE TEXTO POR PÁGINA — alineación, negrita, cursiva
+       Un solo lugar para traducir los valores guardados en la
+       página a estilos reales, usado igual en el editor y en la
+       vista previa/PDF.
+       ===================================================== */
+
+    function alineacionCss(valor) {
+
+        if (valor === "izquierda") return "left";
+
+        if (valor === "derecha") return "right";
+
+        return "center";
+
+    }
+
+
+    function aplicarEstiloTexto(
+        elemento,
+        pagina
+    ) {
+
+        elemento.style.textAlign =
+            alineacionCss(
+                pagina.textoAlineacion
+            );
+
+
+        elemento.style.fontWeight =
+            pagina.textoNegrita
+                ? "700"
+                : "400";
+
+
+        elemento.style.fontStyle =
+            pagina.textoCursiva
+                ? "italic"
+                : "normal";
+
+    }
+
+
+    /* =====================================================
+       MARCO DE FOTO — usado igual en el editor, la vista previa
+       y el PDF, para que los tres se vean siempre idénticos.
+       La foto siempre va arriba y centrada (eso no se puede
+       mover); lo único que se puede ajustar es la forma, si
+       tiene marco o no, y qué parte de la foto queda visible
+       dentro del marco (arrastrando, solo en el editor).
+       ===================================================== */
+
+    function crearMarcoFoto(pagina, indice, opciones) {
+
+        const editable =
+            Boolean(opciones?.editable);
+
+
+        const forma =
+            pagina.marcoForma ||
+            "ovalado";
+
+
+        const tipoMarco =
+            pagina.marcoTipo ||
+            "conmarco";
+
+
+        const posicion =
+            pagina.imagenPosicion ||
+            { x: 50, y: 50 };
+
+
+        const marco =
+            document.createElement(
+                "div"
+            );
+
+
+        marco.className =
+            `sheet-page__img-marco sheet-page__img-marco--${forma} sheet-page__img-marco--${tipoMarco}`;
+
+
+        /* El anillo interior (el "gap" color papel) solo existe
+           cuando la página tiene marco; sin marco, la cajita de
+           la foto cuelga directo del contenedor exterior. */
+        let contenedorCaja = marco;
+
+
+        if (tipoMarco === "conmarco") {
+
+            const anillo =
+                document.createElement(
+                    "div"
+                );
+
+
+            anillo.className =
+                "sheet-page__img-anillo";
+
+
+            marco.appendChild(
+                anillo
+            );
+
+
+            contenedorCaja =
+                anillo;
+
+        }
+
+
+        const caja =
+            document.createElement(
+                "div"
+            );
+
+
+        caja.className =
+            "sheet-page__img";
+
+
+        contenedorCaja.appendChild(
+            caja
+        );
+
+
+        const foto =
+            document.createElement(
+                "div"
+            );
+
+
+        foto.className =
+            editable
+                ? "sheet-page__img-foto sheet-page__img-foto--editable"
+                : "sheet-page__img-foto";
+
+
+        foto.style.backgroundImage =
+            `url("${pagina.imagen}")`;
+
+
+        foto.style.backgroundPosition =
+            `${posicion.x}% ${posicion.y}%`;
+
+
+        foto.setAttribute(
+            "role",
+            "img"
+        );
+
+
+        foto.setAttribute(
+            "aria-label",
+            `Foto de la página ${indice + 1}`
+        );
+
+
+        if (editable) {
+
+            foto.dataset.tooltip =
+                "Arrastra para reencuadrar";
+
+
+            habilitarArrastreFoto(
+                foto,
+                pagina
+            );
+
+        }
+
+
+        caja.appendChild(
+            foto
+        );
+
+
+        return marco;
+
+    }
+
+
+    /* Arrastrar la foto dentro de su marco para elegir qué parte
+       se ve. Se guarda como porcentaje (pagina.imagenPosicion) y
+       se usa como background-position; por eso mover el dedo a la
+       izquierda "revela" más del lado derecho de la foto, como
+       cuando se desliza una foto bajo una ventanita. */
+    function habilitarArrastreFoto(
+        fotoEl,
+        pagina
+    ) {
+
+        let arrastrando = false;
+
+        let inicioX = 0;
+
+        let inicioY = 0;
+
+        let posInicioX = 50;
+
+        let posInicioY = 50;
+
+
+        function posicionActual() {
+
+            return (
+                pagina.imagenPosicion ||
+                { x: 50, y: 50 }
+            );
+
+        }
+
+
+        fotoEl.addEventListener(
+            "pointerdown",
+            (evento) => {
+
+                arrastrando = true;
+
+
+                inicioX =
+                    evento.clientX;
+
+
+                inicioY =
+                    evento.clientY;
+
+
+                const actual =
+                    posicionActual();
+
+
+                posInicioX =
+                    actual.x;
+
+
+                posInicioY =
+                    actual.y;
+
+
+                fotoEl.setPointerCapture?.(
+                    evento.pointerId
+                );
+
+            }
+        );
+
+
+        fotoEl.addEventListener(
+            "pointermove",
+            (evento) => {
+
+                if (!arrastrando) return;
+
+
+                const rect =
+                    fotoEl.getBoundingClientRect();
+
+
+                if (
+                    !rect.width ||
+                    !rect.height
+                ) return;
+
+
+                const dxPorcentaje =
+                    (
+                        (evento.clientX - inicioX) /
+                        rect.width
+                    ) * 100;
+
+
+                const dyPorcentaje =
+                    (
+                        (evento.clientY - inicioY) /
+                        rect.height
+                    ) * 100;
+
+
+                let nuevoX =
+                    posInicioX - dxPorcentaje;
+
+
+                let nuevoY =
+                    posInicioY - dyPorcentaje;
+
+
+                nuevoX =
+                    Math.max(
+                        0,
+                        Math.min(100, nuevoX)
+                    );
+
+
+                nuevoY =
+                    Math.max(
+                        0,
+                        Math.min(100, nuevoY)
+                    );
+
+
+                pagina.imagenPosicion =
+                    { x: nuevoX, y: nuevoY };
+
+
+                fotoEl.style.backgroundPosition =
+                    `${nuevoX}% ${nuevoY}%`;
+
+            }
+        );
+
+
+        function terminarArrastre(
+            evento
+        ) {
+
+            if (!arrastrando) return;
+
+
+            arrastrando = false;
+
+
+            fotoEl.releasePointerCapture?.(
+                evento.pointerId
+            );
+
+        }
+
+
+        fotoEl.addEventListener(
+            "pointerup",
+            terminarArrastre
+        );
+
+
+        fotoEl.addEventListener(
+            "pointercancel",
+            terminarArrastre
+        );
+
+    }
+
+
+    /* =====================================================
        RENDERIZAR PÁGINA ACTUAL (EDITOR)
        ===================================================== */
 
@@ -1626,6 +2178,14 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
             btnQuitarImagen.hidden =
                 !tieneImagen;
 
+
+            if (arrastrarHint) {
+
+                arrastrarHint.hidden =
+                    !tieneImagen;
+
+            }
+
         } else {
 
             btnAgregarImagen.textContent =
@@ -1633,6 +2193,30 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
 
             btnQuitarImagen.hidden = true;
+
+
+            if (arrastrarHint) {
+
+                arrastrarHint.hidden = true;
+
+            }
+
+        }
+
+
+        /* El panel de estilo (forma/marco de foto, alineación,
+           negrita/cursiva) no aplica a la portada. */
+        if (editorEstilo) {
+
+            editorEstilo.hidden =
+                esPortada;
+
+        }
+
+
+        if (!esPortada) {
+
+            actualizarControlesEstilo();
 
         }
 
@@ -1648,6 +2232,165 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
         }
 
     }
+
+
+    /* =====================================================
+       CONTROLES DE ESTILO POR PÁGINA
+       Reflejan y actualizan el estilo de la página actual:
+       forma/marco de foto, alineación de texto, negrita/cursiva.
+       ===================================================== */
+
+    function actualizarControlesEstilo() {
+
+        const pagina =
+            paginas[paginaActual];
+
+
+        botonesForma.forEach(
+            (boton) => {
+
+                boton.setAttribute(
+                    "aria-pressed",
+                    boton.dataset.forma ===
+                        (pagina.marcoForma || "ovalado")
+                        ? "true"
+                        : "false"
+                );
+
+            }
+        );
+
+
+        botonesMarco.forEach(
+            (boton) => {
+
+                boton.setAttribute(
+                    "aria-pressed",
+                    boton.dataset.marco ===
+                        (pagina.marcoTipo || "conmarco")
+                        ? "true"
+                        : "false"
+                );
+
+            }
+        );
+
+
+        botonesAlinear.forEach(
+            (boton) => {
+
+                boton.setAttribute(
+                    "aria-pressed",
+                    boton.dataset.alinear ===
+                        (pagina.textoAlineacion || "centro")
+                        ? "true"
+                        : "false"
+                );
+
+            }
+        );
+
+
+        btnNegrita?.setAttribute(
+            "aria-pressed",
+            pagina.textoNegrita ? "true" : "false"
+        );
+
+
+        btnCursiva?.setAttribute(
+            "aria-pressed",
+            pagina.textoCursiva ? "true" : "false"
+        );
+
+    }
+
+
+    botonesForma.forEach(
+        (boton) => {
+
+            boton.addEventListener(
+                "click",
+                () => {
+
+                    paginas[paginaActual].marcoForma =
+                        boton.dataset.forma;
+
+
+                    renderPagina();
+
+                }
+            );
+
+        }
+    );
+
+
+    botonesMarco.forEach(
+        (boton) => {
+
+            boton.addEventListener(
+                "click",
+                () => {
+
+                    paginas[paginaActual].marcoTipo =
+                        boton.dataset.marco;
+
+
+                    renderPagina();
+
+                }
+            );
+
+        }
+    );
+
+
+    botonesAlinear.forEach(
+        (boton) => {
+
+            boton.addEventListener(
+                "click",
+                () => {
+
+                    paginas[paginaActual].textoAlineacion =
+                        boton.dataset.alinear;
+
+
+                    renderPagina();
+
+                }
+            );
+
+        }
+    );
+
+
+    btnNegrita?.addEventListener(
+        "click",
+        () => {
+
+            paginas[paginaActual].textoNegrita =
+                !paginas[paginaActual].textoNegrita;
+
+
+            renderPagina();
+
+        }
+    );
+
+
+    btnCursiva?.addEventListener(
+        "click",
+        () => {
+
+            paginas[paginaActual].textoCursiva =
+                !paginas[paginaActual].textoCursiva;
+
+
+            renderPagina();
+
+        }
+    );
 
 
     /* =====================================================
@@ -1773,37 +2516,12 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
         if (pagina.imagen) {
 
-            const imgBox =
-                document.createElement(
-                    "div"
-                );
-
-
-            imgBox.className =
-                "sheet-page__img";
-
-
-            const img =
-                document.createElement(
-                    "img"
-                );
-
-
-            img.src =
-                pagina.imagen;
-
-
-            img.alt =
-                `Foto de la página ${paginaActual + 1}`;
-
-
-            imgBox.appendChild(
-                img
-            );
-
-
             wrap.appendChild(
-                imgBox
+                crearMarcoFoto(
+                    pagina,
+                    paginaActual,
+                    { editable: true }
+                )
             );
 
         }
@@ -1839,9 +2557,18 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
             LIMITE_CARACTERES;
 
 
+        textarea.rows = 1;
+
+
         textarea.value =
             pagina.texto ||
             "";
+
+
+        aplicarEstiloTexto(
+            textarea,
+            pagina
+        );
 
 
         const contador =
@@ -1873,6 +2600,40 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
         }
 
 
+        /* El textarea crece con el contenido (en vez de quedarse en
+           una caja fija más chica) para que la posición y el tamaño
+           del texto se parezcan a como se ve en la vista previa y
+           en el PDF, donde el texto ocupa todo el espacio disponible
+           y queda centrado dentro de él. */
+        function ajustarAlturaTextarea() {
+
+            textarea.style.height =
+                "auto";
+
+
+            const disponible =
+                textWrap.clientHeight;
+
+
+            const necesaria =
+                textarea.scrollHeight;
+
+
+            const alto =
+                disponible
+                    ? Math.min(
+                        necesaria,
+                        disponible
+                    )
+                    : necesaria;
+
+
+            textarea.style.height =
+                `${alto}px`;
+
+        }
+
+
         textarea.addEventListener(
             "input",
             () => {
@@ -1882,6 +2643,9 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
 
                 actualizarContador();
+
+
+                ajustarAlturaTextarea();
 
             }
         );
@@ -1926,6 +2690,12 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
             wrap
         );
 
+
+        /* Recién ahora el textarea está dentro del DOM visible,
+           así que las medidas (clientHeight/scrollHeight) son
+           reales y el primer ajuste de altura sale correcto. */
+        ajustarAlturaTextarea();
+
     }
 
 
@@ -1943,7 +2713,19 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
                 texto: "",
 
-                imagen: null
+                imagen: null,
+
+                marcoForma: "ovalado",
+
+                marcoTipo: "conmarco",
+
+                imagenPosicion: { x: 50, y: 50 },
+
+                textoAlineacion: "centro",
+
+                textoNegrita: false,
+
+                textoCursiva: false
 
             });
 
@@ -2211,37 +2993,12 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
         if (pagina.imagen) {
 
-            const imgBox =
-                document.createElement(
-                    "div"
-                );
-
-
-            imgBox.className =
-                "sheet-page__img";
-
-
-            const img =
-                document.createElement(
-                    "img"
-                );
-
-
-            img.src =
-                pagina.imagen;
-
-
-            img.alt =
-                `Foto de la página ${indice + 1}`;
-
-
-            imgBox.appendChild(
-                img
-            );
-
-
             wrap.appendChild(
-                imgBox
+                crearMarcoFoto(
+                    pagina,
+                    indice,
+                    { editable: false }
+                )
             );
 
         }
@@ -2260,6 +3017,12 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
         text.textContent =
             pagina.texto ||
             "";
+
+
+        aplicarEstiloTexto(
+            text,
+            pagina
+        );
 
 
         wrap.appendChild(
@@ -2591,6 +3354,129 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
         hoja,
         irPaginaSiguiente,
         irPaginaAnterior
+    );
+
+
+    /* =====================================================
+       VENTANA EMERGENTE: cambiar configuración
+       ===================================================== */
+
+    function abrirModalConfig() {
+
+        if (!modalConfig) return;
+
+
+        modalConfig.hidden = false;
+
+    }
+
+
+    function cerrarModalConfig() {
+
+        if (!modalConfig) return;
+
+
+        modalConfig.hidden = true;
+
+    }
+
+
+    btnCambiarConfig?.addEventListener(
+        "click",
+        abrirModalConfig
+    );
+
+
+    btnModalCerrar?.addEventListener(
+        "click",
+        cerrarModalConfig
+    );
+
+
+    /* Cerrar tocando el fondo oscuro, fuera de la tarjeta */
+    modalConfig?.addEventListener(
+        "click",
+        (evento) => {
+
+            if (evento.target === modalConfig) {
+
+                cerrarModalConfig();
+
+            }
+
+        }
+    );
+
+
+    document.addEventListener(
+        "keydown",
+        (evento) => {
+
+            if (
+                evento.key === "Escape" &&
+                modalConfig &&
+                !modalConfig.hidden
+            ) {
+
+                cerrarModalConfig();
+
+            }
+
+        }
+    );
+
+
+    /* Opción 1: cambiar solo el formato — guardamos el texto y las
+       fotos actuales para que index.html las devuelva junto con la
+       nueva configuración. */
+    btnModalCambiarFormato?.addEventListener(
+        "click",
+        () => {
+
+            try {
+
+                sessionStorage.setItem(
+                    CLAVE_PAGINAS,
+                    JSON.stringify({
+
+                        paginas,
+
+                        paginaActual
+
+                    })
+                );
+
+            } catch (error) {
+
+                console.error(
+                    error
+                );
+
+            }
+
+
+            window.location.href =
+                "index.html";
+
+        }
+    );
+
+
+    /* Opción 2: empezar un libro nuevo — nos aseguramos de que no
+       quede ninguna copia de páginas guardada de antes. */
+    btnModalNuevoLibro?.addEventListener(
+        "click",
+        () => {
+
+            sessionStorage.removeItem(
+                CLAVE_PAGINAS
+            );
+
+
+            window.location.href =
+                "index.html";
+
+        }
     );
 
 
