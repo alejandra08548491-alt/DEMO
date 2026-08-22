@@ -2443,14 +2443,12 @@ input:focus-visible {
 .preview-cover__titulo {
     font-family: var(--book-font, var(--font-title));
     color: var(--book-color, var(--ink));
-    /* cqw en vez de vw: el tamaño depende del ancho real de la
-       hoja (ver container-type en .preview-sheet), no del ancho
-       de toda la pantalla. Así se ve igual en la vista previa
-       chica del celular que en el PDF descargado. */
     font-size: clamp(30px, 7.3cqw, 60px);
     font-weight: 600;
     text-align: center;
     margin: 0;
+    width: 100%;        /* ← agregar esto */
+    max-width: 92%;     /* ← y esto */
 }
 
 .preview-cover__subtitulo {
@@ -2459,8 +2457,9 @@ input:focus-visible {
     font-size: clamp(16px, 3cqw, 24px);
     text-align: center;
     margin: 0;
+    width: 100%;        /* ← agregar esto */
+    max-width: 92%;     /* ← y esto */
 }
-
 .preview-page__text {
     width: 100%;
     max-width: 65%;
