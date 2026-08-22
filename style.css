@@ -295,6 +295,7 @@ body {
     transition:
         transform 0.12s ease,
         box-shadow 0.12s ease;
+    touch-action: manipulation;
 }
 
 
@@ -733,10 +734,10 @@ input[type="file"] {
 
 .fondos__personalizar {
     display: block;
-
     margin-top: 16px;
-
-    font-size: 16px;
+    font-size: 18px;      /* antes 16px, ahora igual que .field-label */
+    font-weight: 600;     /* igual que .field-label */
+    text-align: left;     /* fuerza alineación a la izquierda en todos los navegadores/celulares */
 }
 
 
@@ -973,6 +974,7 @@ input[type="file"] {
     height: 18px;
     color: var(--ink);
 }
+
 /* =========================================================
    PÁGINA 2 — LIBRO / EDITOR
    ========================================================= */
@@ -1510,19 +1512,22 @@ input[type="file"] {
 
 .sheet-page__img-marco--ovalado {
     --marco-radio: 50%;
-    --marco-ratio: 131.58%; /* proporción 19:25 */
+    --marco-ratio: 131.58%;
+    /* proporción 19:25 */
 }
 
 
 .sheet-page__img-marco--redondo {
     --marco-radio: 50%;
-    --marco-ratio: 100%; /* círculo, 1:1 */
+    --marco-ratio: 100%;
+    /* círculo, 1:1 */
 }
 
 
 .sheet-page__img-marco--cuadrado {
     --marco-radio: 10px;
-    --marco-ratio: 100%; /* cuadrado con esquinas suaves, 1:1 */
+    --marco-ratio: 100%;
+    /* cuadrado con esquinas suaves, 1:1 */
 }
 
 
@@ -2260,7 +2265,7 @@ input:focus-visible {
     width: 100%;
     height: 100%;
     min-height: 0;
-    background: rgba(255,255,255,0.03);
+    background: rgba(255, 255, 255, 0.03);
 }
 
 /* =========================================================
@@ -2447,8 +2452,10 @@ input:focus-visible {
     font-weight: 600;
     text-align: center;
     margin: 0;
-    width: 100%;        /* ← agregar esto */
-    max-width: 92%;     /* ← y esto */
+    width: 100%;
+    /* ← agregar esto */
+    max-width: 92%;
+    /* ← y esto */
 }
 
 .preview-cover__subtitulo {
@@ -2457,9 +2464,12 @@ input:focus-visible {
     font-size: clamp(16px, 3cqw, 24px);
     text-align: center;
     margin: 0;
-    width: 100%;        /* ← agregar esto */
-    max-width: 92%;     /* ← y esto */
+    width: 100%;
+    /* ← agregar esto */
+    max-width: 92%;
+    /* ← y esto */
 }
+
 .preview-page__text {
     width: 100%;
     max-width: 65%;
