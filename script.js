@@ -871,11 +871,32 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
         "click",
         () => {
 
+            /* Evita que un doble-tap en celular (o el "click" que
+               algunos navegadores móviles disparan dos veces sobre
+               el mismo toque) ejecute esto dos veces. */
+            if (btnGenerar.disabled) return;
+
+
             btnGenerar.disabled = true;
 
 
             ctaHint.textContent =
                 "Preparando tu libro…";
+
+
+            /* Red de seguridad: si por lo que sea (Safari en modo
+               privado, un error silencioso, una conexión lenta)
+               la navegación a libro.html no llega a pasar, el botón
+               no debe quedar bloqueado para siempre. Si en 3
+               segundos seguimos en esta página, lo reactivamos. */
+            const idSeguridad = setTimeout(() => {
+
+                btnGenerar.disabled = false;
+
+                ctaHint.textContent =
+                    "Algo tardó más de la cuenta. Intenta de nuevo.";
+
+            }, 3000);
 
 
             try {
@@ -928,6 +949,9 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
             } catch (err) {
 
                 console.error(err);
+
+
+                clearTimeout(idSeguridad);
 
 
                 ctaHint.textContent =
@@ -4347,7 +4371,7 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
                    aparte). Por eso se lo pasamos explícito acá. */
                 const colorDeFondoParaCanvas =
                     config.fondoTipo === "color" &&
-                    config.fondoColor
+                        config.fondoColor
                         ? config.fondoColor
                         : null;
 
