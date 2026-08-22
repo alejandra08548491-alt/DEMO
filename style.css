@@ -51,6 +51,16 @@
     box-sizing: border-box;
 }
 
+/* El atributo HTML "hidden" debería significar siempre "oculto",
+   pero cualquier clase que ponga su propio "display" (flex, block,
+   etc.) le gana en especificidad y lo deja visible igual. Ya pasó
+   con la ventana emergente y con el panel de estilo de foto/texto.
+   Esta regla universal evita que se repita en cualquier otro lugar
+   del sitio: "hidden" siempre gana. */
+[hidden] {
+    display: none !important;
+}
+
 html {
     -webkit-tap-highlight-color: transparent;
 }
@@ -191,11 +201,11 @@ body {
 
 
 .btn--ghost {
-    color: var(--moss-dark);
+    color: var(--ink);
 
     background: transparent;
 
-    border-bottom: 2px solid var(--moss);
+    border-bottom: 2px solid var(--ink-soft);
 
     padding: 2px 2px 4px;
 
@@ -417,7 +427,7 @@ body {
     margin:
         0 0 34px;
 
-    color: var(--moss-dark);
+    color: var(--ink);
 
     font-family: var(--font-ui);
 
@@ -921,7 +931,48 @@ input[type="file"] {
     margin: 0;
 }
 
+.footer__message {
+    margin: 0;
+    font-family: "Caveat", cursive;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+}
 
+.footer__creator {
+    margin: 0;
+    font-family: "EB Garamond", serif;
+    font-size: 0.95rem;
+    color: var(--ink);
+    opacity: 0.8;
+}
+
+.footer__creator strong {
+    font-weight: 600;
+}
+
+.footer__instagram {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+    font-family: "EB Garamond", serif;
+    font-size: 0.9rem;
+    color: black;
+    opacity: 0.8;
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+.footer__instagram:hover {
+    opacity: 1;
+}
+
+.footer__instagram-icon {
+    width: 18px;
+    height: 18px;
+    color: var(--ink);
+}
 /* =========================================================
    PÁGINA 2 — LIBRO / EDITOR
    ========================================================= */
@@ -1778,6 +1829,33 @@ input[type="file"] {
 }
 
 
+.editor__estilo-aviso {
+    width: 100%;
+
+    text-align: center;
+
+    font-family: var(--font-ui);
+
+    font-style: italic;
+
+    font-size: 14px;
+
+    color: var(--rust);
+
+    background:
+        rgba(156, 70, 50, 0.08);
+
+    border:
+        1px dashed var(--rust);
+
+    border-radius: 6px;
+
+    padding: 8px 14px;
+
+    margin: 0 0 4px;
+}
+
+
 .segmentado {
     display: inline-flex;
 
@@ -1833,6 +1911,18 @@ input[type="file"] {
     background: var(--moss);
 
     color: var(--paper);
+}
+
+
+.segmentado__opcion:disabled {
+    opacity: 0.4;
+
+    cursor: not-allowed;
+}
+
+
+.segmentado__opcion:disabled:hover {
+    background: #f4ecd8;
 }
 
 
@@ -2272,14 +2362,26 @@ input:focus-visible {
     aspect-ratio: 216 / 279;
     flex: 1;
     touch-action: pan-y;
+    overflow: hidden;
 }
 
+/* La hoja se dibuja siempre al mismo ancho que usa el PDF (816px),
+   así el navegador calcula el tamaño de letra (unidades cqw)
+   exactamente igual que al generar el PDF. Luego se encoge
+   visualmente con transform: scale() para que quepa en pantalla,
+   sin alterar cómo se calculó el texto (ver actualizarEscalaPreview
+   en script.js, que fija --preview-scale). Esto hace que la vista
+   previa sea siempre un espejo fiel del PDF descargado, sin
+   importar el tamaño de la pantalla del dispositivo. */
 .book-viewer__stage .preview-sheet {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
+    top: 0;
+    left: 0;
+    width: 816px;
+    height: 1054px;
     margin: 0;
+    transform: scale(var(--preview-scale, 1));
+    transform-origin: top left;
 }
 
 .book-viewer__arrow {
@@ -2576,6 +2678,42 @@ input:focus-visible {
 
 .btn--modal-secundario:hover {
     background: rgba(156, 70, 50, 0.08);
+}
+
+.btn--modal-peligro {
+    background: var(--rust);
+    color: var(--paper);
+    border: 1px solid #7a3626;
+    box-shadow: 0 3px 0 #7a3626;
+}
+
+.btn--modal-peligro:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 0 #7a3626;
+}
+
+.btn--modal-peligro:active {
+    transform: translateY(1px);
+    box-shadow: 0 1px 0 #7a3626;
+}
+
+.modal-card__input {
+    display: block;
+    width: 100%;
+    font-family: var(--font-ui);
+    font-size: 17px;
+    color: var(--ink);
+    background: #f4ecd8;
+    border: 1.5px solid var(--ink);
+    border-radius: 6px;
+    padding: 10px 12px;
+    margin: 0 0 18px;
+    text-align: center;
+}
+
+.modal-card__input:focus-visible {
+    outline: 2px solid var(--rust);
+    outline-offset: 2px;
 }
 
 .modal-card__detalle {
