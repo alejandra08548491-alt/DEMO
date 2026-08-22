@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        Hazle un libro
+    </title>
+
+
+    <!-- Fuentes -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Kalam:wght@400;700&family=Sacramento&family=Homemade+Apple&family=Shadows+Into+Light&family=Dancing+Script:wght@600;700&family=Patrick+Hand&family=Amatic+SC:wght@400;700&display=swap"
+        rel="stylesheet">
+
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body class="fondo-1">
+
+    <div class="paper-texture" aria-hidden="true"></div>
+
+
+    <div class="page">
+
+
+        <!-- =====================================================
+         ENCABEZADO
+    ====================================================== -->
+
+        <header class="hero">
+
+            <p class="hero__eyebrow">
+                un pequeño taller de regalos
+            </p>
+
+
+            <h1 class="hero__title">
+                Hazle un libro
+            </h1>
+
+
+            <p class="hero__subtitle">
+                Acá puedes crear un librito con tus fotos, con tus palabras y con tus sentimientos
+                para regalárselo a alguien que amas.
+                Lo armas en minutos y lo recordarán toda una vida.
+            </p>
+
+        </header>
+
+
+        <!-- =====================================================
+         EXPLICACIÓN
+    ====================================================== -->
+
+        <section class="letter" aria-label="Qué es esto">
+
+            <p>
+                Esto no es un editor complicado, es un creador de libros facil de usar.
+                Eliges una plantilla, un tipo y color de letra, y luego vas armando tu libro
+                página por página: empiezas con la portada y agregas cuantas páginas necesites,
+                con o sin foto.
+            </p>
+
+        </section>
+
+
+        <!-- =====================================================
+         AVISO
+    ====================================================== -->
+
+        <section class="notice" aria-label="Aviso importante">
+
+            <div class="notice__stamp" aria-hidden="true">
+
+                <svg viewBox="0 0 100 100" width="76" height="76">
+
+                    <circle cx="50" cy="50" r="44" fill="none" stroke="var(--rust)" stroke-width="2.5" />
+
+                    <text x="50" y="46" text-anchor="middle" class="notice__stamp-text">
+                        OJO
+                    </text>
+
+                    <text x="50" y="62" text-anchor="middle" class="notice__stamp-text">
+                        no se guarda
+                    </text>
+
+                </svg>
+
+            </div>
+
+
+            <div class="notice__text">
+
+                <p>
+
+                    <strong>
+                        Tu libro vive solo aquí, en esta pantalla.
+                    </strong>
+
+                    No hay cuentas ni historial: si cierras la
+                    página antes de descargarlo, se pierde. Cuando termines,
+                    descarga tu PDF antes de irte.
+
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+         MARCADOR DE INICIO
+    ====================================================== -->
+
+        <div class="start-marker" aria-hidden="true">
+            <span>ACÁ INICIA LA AVENTURA</span>
+        </div>
+
+
+        <!-- =====================================================
+         CONFIGURACIÓN DEL LIBRO
+    ====================================================== -->
+
+        <section class="config" id="config">
+
+
+            <!-- ===================================================
+           FONDO
+      ==================================================== -->
+
+            <div class="config__block">
+
+                <label class="field-label">
+                    1. Elige el fondo de tu libro
+                </label>
+
+                <p class="field-hint">
+                    Estas imágenes serán el fondo de todas las páginas de tu libro.
+                </p>
+
+                <div class="fondos__carrusel">
+
+                    <button type="button" class="fondos__arrow fondos__arrow--prev" id="fondo-prev"
+                        aria-label="Ver fondos anteriores">
+                        ‹
+                    </button>
+
+                    <div class="fondos__viewport" id="fondos-viewport">
+                        <div class="fondos__track" id="fondos-track" role="list" aria-label="Fondos disponibles">
+
+                            <!-- Las 12 imágenes corresponden a img/1.jpeg ... img/12.jpeg -->
+                            <button class="fondo-card" type="button" role="listitem" data-fondo="0" aria-pressed="true">
+                                <img class="fondo-card__preview" src="img/0.jpeg" alt="Fondo 0">
+                            </button>
+
+                            <button class="fondo-card" type="button" role="listitem" data-fondo="1"
+                                aria-pressed="false">
+                                <img class="fondo-card__preview" src="img/1.jpeg" alt="Fondo 1">
+                            </button>
+
+                            <button class="fondo-card" type="button" role="listitem" data-fondo="2"
+                                aria-pressed="false">
+                                <img class="fondo-card__preview" src="img/2.jpeg" alt="Fondo 2">
+                            </button>
+
+                            <button class="fondo-card" type="button" role="listitem" data-fondo="3"
+                                aria-pressed="false">
+                                <img class="fondo-card__preview" src="img/3.jpeg" alt="Fondo 3">
+                            </button>
+
+                            <button class="fondo-card" type="button" role="listitem" data-fondo="4"
+                                aria-pressed="false">
+                                <img class="fondo-card__preview" src="img/4.jpeg" alt="Fondo 4">
+                            </button>
+
+                            <button class="fondo-card" type="button" role="listitem" data-fondo="5"
+                                aria-pressed="false">
+                                <img class="fondo-card__preview" src="img/5.jpeg" alt="Fondo 5">
+                            </button>
+
+                            <button class="fondo-card" type="button" role="listitem" data-fondo="6"
+                                aria-pressed="false">
+                                <img class="fondo-card__preview" src="img/6.jpeg" alt="Fondo 6">
+                            </button>
+
+                            <button class="fondo-card" type="button" role="listitem" data-fondo="7"
+                                aria-pressed="false">
+                                <img class="fondo-card__preview" src="img/7.jpeg" alt="Fondo 7">
+                            </button>
+
+                            <button class="fondo-card" type="button" role="listitem" data-fondo="8"
+                                aria-pressed="false">
+                                <img class="fondo-card__preview" src="img/8.jpeg" alt="Fondo 8">
+                            </button>
+
+                            <button class="fondo-card" type="button" role="listitem" data-fondo="9"
+                                aria-pressed="false">
+                                <img class="fondo-card__preview" src="img/9.jpeg" alt="Fondo 9">
+                            </button>
+
+                            <button class="fondo-card" type="button" role="listitem" data-fondo="10"
+                                aria-pressed="false">
+                                <img class="fondo-card__preview" src="img/10.jpeg" alt="Fondo 10">
+                            </button>
+
+                            <button class="fondo-card" type="button" role="listitem" data-fondo="11"
+                                aria-pressed="false">
+                                <img class="fondo-card__preview" src="img/11.jpeg" alt="Fondo 11">
+                            </button>
+
+                            <button class="fondo-card" type="button" role="listitem" data-fondo="12"
+                                aria-pressed="false">
+                                <img class="fondo-card__preview" src="img/12.jpeg" alt="Fondo 12">
+                            </button>
+
+                            <button class="fondo-card" type="button" role="listitem" data-fondo="13"
+                                aria-pressed="false">
+                                <img class="fondo-card__preview" src="img/13.jpeg" alt="Fondo 13">
+                            </button>
+
+                            <button class="fondo-card" type="button" role="listitem" data-fondo="14"
+                                aria-pressed="false">
+                                <img class="fondo-card__preview" src="img/14.jpeg" alt="Fondo 14">
+                            </button>
+
+                        </div>
+                    </div>
+
+                    <button type="button" class="fondos__arrow fondos__arrow--next" id="fondo-next"
+                        aria-label="Ver más fondos">
+                        ›
+                    </button>
+
+                </div>
+
+
+                <!-- ================================
+             1.2 PERSONALIZAR FONDO (color liso)
+        ================================= -->
+
+                <button type="button" class="btn btn--ghost fondos__personalizar" id="btn-personalizar-fondo"
+                    aria-expanded="false" aria-controls="fondo-color-panel">
+                    1.2 Selecciona acá para elegir un color de fondo solido
+                </button>
+
+
+                <div class="fondo-color-panel" id="fondo-color-panel" hidden>
+
+                    <p class="field-hint">
+                        Elige un color. NOTA: tu libro se verá como una hoja de cuaderno,
+                        con líneas, en ese tono.
+                    </p>
+
+                    <div class="colores__row" id="fondo-color-row" role="radiogroup"
+                        aria-label="Color de fondo personalizado">
+
+                        <label class="color-swatch">
+                            <input type="radio" name="fondo-color" value="#f3ead9">
+                            <span class="color-swatch__dot" style="background:#f3ead9;border-color:#d8c9ad"></span>
+                            <span class="color-swatch__label">Crema</span>
+                        </label>
+
+                        <label class="color-swatch">
+                            <input type="radio" name="fondo-color" value="#efe9df">
+                            <span class="color-swatch__dot" style="background:#efe9df;border-color:#d5cdbd"></span>
+                            <span class="color-swatch__label">Papel</span>
+                        </label>
+
+                        <label class="color-swatch">
+                            <input type="radio" name="fondo-color" value="#e6ecef">
+                            <span class="color-swatch__dot" style="background:#e6ecef;border-color:#c7d3d8"></span>
+                            <span class="color-swatch__label">Celeste</span>
+                        </label>
+
+                        <label class="color-swatch">
+                            <input type="radio" name="fondo-color" value="#e8ecdf">
+                            <span class="color-swatch__dot" style="background:#e8ecdf;border-color:#cdd6b9"></span>
+                            <span class="color-swatch__label">Salvia</span>
+                        </label>
+
+                        <label class="color-swatch">
+                            <input type="radio" name="fondo-color" value="#f3e3e1">
+                            <span class="color-swatch__dot" style="background:#f3e3e1;border-color:#e0c4c0"></span>
+                            <span class="color-swatch__label">Palo rosa</span>
+                        </label>
+
+                        <label class="color-swatch">
+                            <input type="radio" name="fondo-color" value="#eae8e4">
+                            <span class="color-swatch__dot" style="background:#eae8e4;border-color:#d1cdc4"></span>
+                            <span class="color-swatch__label">Gris perla</span>
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ===================================================
+           TIPOGRAFÍA
+      ==================================================== -->
+
+            <div class="config__block">
+
+                <label class="field-label" for="select-tipografia">
+                    2. Tipo de letra
+                </label>
+
+
+                <select id="select-tipografia" class="select">
+
+                    <option value="Caveat" selected>
+                        Caveat
+                    </option>
+
+                    <option value="Kalam">
+                        Kalam
+                    </option>
+
+                    <option value="Sacramento">
+                        Sacramento
+                    </option>
+
+                    <option value="Homemade Apple">
+                        Homemade Apple
+                    </option>
+
+                    <option value="Shadows Into Light">
+                        Shadows Into Light
+                    </option>
+
+                    <option value="Dancing Script">
+                        Dancing Script
+                    </option>
+
+                    <option value="Patrick Hand">
+                        Patrick Hand
+                    </option>
+
+                    <option value="Amatic SC">
+                        Amatic SC
+                    </option>
+
+                </select>
+
+
+                <p class="field-preview" id="preview-tipografia">
+                    Así se va a ver tu letra
+                </p>
+
+            </div>
+
+
+            <!-- ===================================================
+           COLOR DE LETRA
+      ==================================================== -->
+
+            <div class="config__block">
+
+                <span class="field-label">
+                    3. Color de letra
+                </span>
+
+
+                <div class="colores__row" role="radiogroup" aria-label="Color de letra">
+
+                    <!-- <label class="color-swatch">
+
+                        <input type="radio" name="color-letra" value="#d2c7bf">
+
+                        <span class="color-swatch__dot" style="background:#d2c7bf"></span>
+
+                        <span class="color-swatch__label">
+                            Beige
+                        </span>
+
+                    </label>-->
+
+
+                    <label class="color-swatch">
+
+                        <input type="radio" name="color-letra" value="#4A3324" checked>
+
+                        <span class="color-swatch__dot" style="background:#4A3324"></span>
+
+                        <span class="color-swatch__label">
+                            Café
+                        </span>
+
+                    </label>
+
+
+                    <label class="color-swatch">
+
+                        <input type="radio" name="color-letra" value="#3F4F30">
+
+                        <span class="color-swatch__dot" style="background:#3F4F30"></span>
+
+                        <span class="color-swatch__label">
+                            Verde
+                        </span>
+
+                    </label>
+
+
+                    <label class="color-swatch">
+
+                        <input type="radio" name="color-letra" value="#3A3A3A">
+
+                        <span class="color-swatch__dot" style="background:#3A3A3A"></span>
+
+                        <span class="color-swatch__label">
+                            Gris
+                        </span>
+
+                    </label>
+
+
+                    <label class="color-swatch">
+
+                        <input type="radio" name="color-letra" value="#2E3A4F">
+
+                        <span class="color-swatch__dot" style="background:#2E3A4F"></span>
+
+                        <span class="color-swatch__label">
+                            Azul
+                        </span>
+
+                    </label>
+
+
+                    <label class="color-swatch">
+
+                        <input type="radio" name="color-letra" value="#8B4A34">
+
+                        <span class="color-swatch__dot" style="background:#8B4A34"></span>
+
+                        <span class="color-swatch__label">
+                            Terracota
+                        </span>
+
+                    </label>
+
+
+                    <label class="color-swatch">
+
+                        <input type="radio" name="color-letra" value="#1f1a17">
+
+                        <span class="color-swatch__dot" style="background:#1f1a17"></span>
+
+                        <span class="color-swatch__label">
+                            Negro
+                        </span>
+
+                    </label>
+
+
+                    <label class="color-swatch">
+
+                        <input type="radio" name="color-letra" value="#5c1f2b">
+
+                        <span class="color-swatch__dot" style="background:#5c1f2b"></span>
+
+                        <span class="color-swatch__label">
+                            Vino
+                        </span>
+
+                    </label>
+
+
+                </div>
+
+            </div>
+
+
+        </section>
+
+
+        <!-- =====================================================
+         CTA
+    ====================================================== -->
+
+        <section class="cta">
+
+
+            <button type="button" class="btn btn--random" id="btn-random">
+                Generar libro al azar
+            </button>
+
+
+            <p class="random-leyenda" id="random-leyenda" aria-live="polite"></p>
+
+
+            <button type="button" class="btn btn--seal" id="btn-generar">
+                Empezar mi libro
+            </button>
+
+
+            <p class="cta__hint" id="cta-hint" aria-live="polite">
+                ¡Disfruta mucho del proceso de crear un libro!
+            </p>
+
+
+        </section>
+
+
+        <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+        <footer class="footer">
+
+            <p class="footer__message">
+                Hecho con cariño · Solo tú y tu regalo.
+            </p>
+
+            <p class="footer__creator">
+                Creado por <strong>Alejandra Solorzano</strong>
+            </p>
+
+            <a href="https://www.instagram.com/alejandra__solorzano" class="footer__instagram" target="_blank"
+                rel="noopener noreferrer">
+                <svg class="footer__instagram-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="1.8" />
+                    <circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.8" />
+                    <circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" />
+                </svg>
+                <strong> <span>@alejandra__solorzano</span></strong>
+            </a>
+
+        </footer>
+
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
