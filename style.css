@@ -2487,6 +2487,14 @@ input:focus-visible {
     margin: 0 auto;
     padding: 0 4%;
 }
+.preview-page:has(.sheet-page__img-marco) .preview-page__text {
+    flex: 0 0 auto;
+    margin: 6% auto 0;
+}
+
+.preview-page:has(.sheet-page__img-marco) .sheet-page__footer {
+    margin-top: auto;
+}
 
 .preview-screen__bottom {
     display: flex;
