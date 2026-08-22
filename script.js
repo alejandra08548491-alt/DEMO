@@ -1002,6 +1002,10 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
         document.getElementById("arrastrar-hint");
 
 
+    const avisoSinFoto =
+        document.getElementById("aviso-sin-foto");
+
+
     const editorEstilo =
         document.getElementById("editor-estilo");
 
@@ -1120,6 +1124,46 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
         document.getElementById("btn-modal-cerrar");
 
 
+    const modalConfirmar =
+        document.getElementById("modal-confirmar");
+
+
+    const modalConfirmarTitulo =
+        document.getElementById("modal-confirmar-titulo");
+
+
+    const modalConfirmarTexto =
+        document.getElementById("modal-confirmar-texto");
+
+
+    const btnConfirmarSi =
+        document.getElementById("btn-confirmar-si");
+
+
+    const btnConfirmarNo =
+        document.getElementById("btn-confirmar-no");
+
+
+    const modalNombrePdf =
+        document.getElementById("modal-nombre-pdf");
+
+
+    const inputNombrePdf =
+        document.getElementById("input-nombre-pdf");
+
+
+    const btnNombrePdfAceptar =
+        document.getElementById(
+            "btn-nombre-pdf-aceptar"
+        );
+
+
+    const btnNombrePdfCancelar =
+        document.getElementById(
+            "btn-nombre-pdf-cancelar"
+        );
+
+
     const LIMITE_CARACTERES = 500;
 
 
@@ -1167,11 +1211,21 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
        MODELO DEL LIBRO
        Empieza solo con la portada. Cada página de cuerpo
        se agrega con el botón "+ agregar página".
-       ===================================================== */
+       La portada también guarda su propio estilo de texto
+       (alineación / negrita / cursiva), igual que el resto
+       de las páginas, para poder editarlo desde el mismo
+       panel de estilo. ===================================================== */
 
     let paginas = [
 
-        { tipo: "portada", titulo: "", subtitulo: "" }
+        {
+            tipo: "portada",
+            titulo: "",
+            subtitulo: "",
+            textoAlineacion: "centro",
+            textoNegrita: false,
+            textoCursiva: false
+        }
 
     ];
 
@@ -1301,6 +1355,50 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
     }
 
 
+    /* Precarga la imagen de fondo antes de pintar cualquier página.
+       Sin esto, el CSS "background-image" no espera a que la imagen
+       termine de descargar: normalmente carga tan rápido que no se
+       nota, pero a veces (celular, conexión lenta, primera visita)
+       la página se dibuja antes de que la imagen esté lista y se ve
+       el papel de respaldo por debajo — que es justo lo que pasaba
+       en la vista previa pero no en el PDF (para el PDF, la imagen
+       ya llevaba un rato cargada en el navegador). Precargándola
+       una sola vez acá, tanto el editor como la vista previa y el
+       PDF arrancan siempre con la imagen ya lista. */
+    function precargarImagen(url) {
+
+        return new Promise(
+            (resolve) => {
+
+                if (!url) {
+
+                    resolve();
+
+                    return;
+
+                }
+
+
+                const img =
+                    new Image();
+
+
+                img.onload = () =>
+                    resolve();
+
+
+                img.onerror = () =>
+                    resolve();
+
+
+                img.src = url;
+
+            }
+        );
+
+    }
+
+
     function aplicarFondo(elemento) {
 
         if (
@@ -1414,6 +1512,341 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
             },
             2000
+        );
+
+    }
+
+
+    /* =====================================================
+       VENTANA DE CONFIRMACIÓN GENÉRICA
+       Reemplaza window.confirm() con una ventana propia del
+       estilo del sitio. Devuelve una Promise<boolean>: true si
+       la persona confirma, false si cancela o cierra la ventana.
+       ===================================================== */
+
+    function pedirConfirmacion(opciones) {
+
+        const {
+            titulo = "¿Estás segura/o?",
+            mensaje = "Esta acción no se puede deshacer.",
+            textoConfirmar = "Sí, continuar",
+            textoCancelar = "Cancelar",
+            peligro = true
+        } = opciones || {};
+
+
+        /* Si por algo faltan los elementos del modal en el HTML,
+           no se rompe el sitio: se cae de vuelta al confirm nativo. */
+        if (
+            !modalConfirmar ||
+            !btnConfirmarSi ||
+            !btnConfirmarNo
+        ) {
+
+            return Promise.resolve(
+                window.confirm(mensaje)
+            );
+
+        }
+
+
+        return new Promise(
+            (resolve) => {
+
+                modalConfirmarTitulo.textContent =
+                    titulo;
+
+
+                modalConfirmarTexto.textContent =
+                    mensaje;
+
+
+                btnConfirmarSi.textContent =
+                    textoConfirmar;
+
+
+                btnConfirmarNo.textContent =
+                    textoCancelar;
+
+
+                btnConfirmarSi.classList.toggle(
+                    "btn--modal-peligro",
+                    peligro
+                );
+
+
+                btnConfirmarSi.classList.toggle(
+                    "btn--modal-primario",
+                    !peligro
+                );
+
+
+                modalConfirmar.hidden = false;
+
+
+                function limpiar(resultado) {
+
+                    modalConfirmar.hidden = true;
+
+
+                    btnConfirmarSi.removeEventListener(
+                        "click",
+                        alConfirmar
+                    );
+
+
+                    btnConfirmarNo.removeEventListener(
+                        "click",
+                        alCancelar
+                    );
+
+
+                    modalConfirmar.removeEventListener(
+                        "click",
+                        alTocarFondo
+                    );
+
+
+                    document.removeEventListener(
+                        "keydown",
+                        alPresionarEscape
+                    );
+
+
+                    resolve(
+                        resultado
+                    );
+
+                }
+
+
+                function alConfirmar() {
+
+                    limpiar(true);
+
+                }
+
+
+                function alCancelar() {
+
+                    limpiar(false);
+
+                }
+
+
+                function alTocarFondo(evento) {
+
+                    if (
+                        evento.target ===
+                        modalConfirmar
+                    ) {
+
+                        limpiar(false);
+
+                    }
+
+                }
+
+
+                function alPresionarEscape(evento) {
+
+                    if (
+                        evento.key === "Escape"
+                    ) {
+
+                        limpiar(false);
+
+                    }
+
+                }
+
+
+                btnConfirmarSi.addEventListener(
+                    "click",
+                    alConfirmar
+                );
+
+
+                btnConfirmarNo.addEventListener(
+                    "click",
+                    alCancelar
+                );
+
+
+                modalConfirmar.addEventListener(
+                    "click",
+                    alTocarFondo
+                );
+
+
+                document.addEventListener(
+                    "keydown",
+                    alPresionarEscape
+                );
+
+            }
+        );
+
+    }
+
+
+    /* =====================================================
+       VENTANA PARA ELEGIR EL NOMBRE DEL PDF
+       Reemplaza window.prompt(). Devuelve una Promise<string|null>:
+       el nombre elegido, o null si se cancela.
+       ===================================================== */
+
+    function pedirNombreArchivo(sugerido) {
+
+        if (
+            !modalNombrePdf ||
+            !inputNombrePdf ||
+            !btnNombrePdfAceptar ||
+            !btnNombrePdfCancelar
+        ) {
+
+            return Promise.resolve(
+                window.prompt(
+                    "¿Cómo quieres llamar tu PDF?",
+                    sugerido
+                )
+            );
+
+        }
+
+
+        return new Promise(
+            (resolve) => {
+
+                inputNombrePdf.value =
+                    sugerido;
+
+
+                modalNombrePdf.hidden = false;
+
+
+                requestAnimationFrame(
+                    () => {
+
+                        inputNombrePdf.focus();
+
+
+                        inputNombrePdf.select();
+
+                    }
+                );
+
+
+                function limpiar(resultado) {
+
+                    modalNombrePdf.hidden = true;
+
+
+                    btnNombrePdfAceptar.removeEventListener(
+                        "click",
+                        alAceptar
+                    );
+
+
+                    btnNombrePdfCancelar.removeEventListener(
+                        "click",
+                        alCancelar
+                    );
+
+
+                    modalNombrePdf.removeEventListener(
+                        "click",
+                        alTocarFondo
+                    );
+
+
+                    inputNombrePdf.removeEventListener(
+                        "keydown",
+                        alPresionarTecla
+                    );
+
+
+                    resolve(
+                        resultado
+                    );
+
+                }
+
+
+                function alAceptar() {
+
+                    limpiar(
+                        inputNombrePdf.value
+                    );
+
+                }
+
+
+                function alCancelar() {
+
+                    limpiar(null);
+
+                }
+
+
+                function alTocarFondo(evento) {
+
+                    if (
+                        evento.target ===
+                        modalNombrePdf
+                    ) {
+
+                        limpiar(null);
+
+                    }
+
+                }
+
+
+                function alPresionarTecla(evento) {
+
+                    if (evento.key === "Enter") {
+
+                        evento.preventDefault();
+
+
+                        alAceptar();
+
+                    } else if (
+                        evento.key === "Escape"
+                    ) {
+
+                        alCancelar();
+
+                    }
+
+                }
+
+
+                btnNombrePdfAceptar.addEventListener(
+                    "click",
+                    alAceptar
+                );
+
+
+                btnNombrePdfCancelar.addEventListener(
+                    "click",
+                    alCancelar
+                );
+
+
+                modalNombrePdf.addEventListener(
+                    "click",
+                    alTocarFondo
+                );
+
+
+                inputNombrePdf.addEventListener(
+                    "keydown",
+                    alPresionarTecla
+                );
+
+            }
         );
 
     }
@@ -1758,7 +2191,8 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
        ESTILO DE TEXTO POR PÁGINA — alineación, negrita, cursiva
        Un solo lugar para traducir los valores guardados en la
        página a estilos reales, usado igual en el editor y en la
-       vista previa/PDF.
+       vista previa/PDF. Se usa tanto para el texto de páginas de
+       cuerpo como para el título/subtítulo de la portada.
        ===================================================== */
 
     function alineacionCss(valor) {
@@ -2204,21 +2638,19 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
         }
 
 
-        /* El panel de estilo (forma/marco de foto, alineación,
-           negrita/cursiva) no aplica a la portada. */
+        /* El panel de estilo se muestra siempre: la alineación,
+           negrita y cursiva también aplican a la portada. Dentro
+           de actualizarControlesEstilo() se ocultan solo los
+           controles de forma/marco de foto cuando es la portada,
+           ya que esos nunca aplican ahí. */
         if (editorEstilo) {
 
-            editorEstilo.hidden =
-                esPortada;
+            editorEstilo.hidden = false;
 
         }
 
 
-        if (!esPortada) {
-
-            actualizarControlesEstilo();
-
-        }
+        actualizarControlesEstilo();
 
 
         if (esPortada) {
@@ -2238,12 +2670,90 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
        CONTROLES DE ESTILO POR PÁGINA
        Reflejan y actualizan el estilo de la página actual:
        forma/marco de foto, alineación de texto, negrita/cursiva.
+       En la portada, los controles de forma/marco de foto se
+       ocultan (no aplican, la portada no lleva foto); los de
+       alineación/negrita/cursiva quedan siempre disponibles.
        ===================================================== */
 
     function actualizarControlesEstilo() {
 
         const pagina =
             paginas[paginaActual];
+
+
+        const esPortada =
+            pagina.tipo === "portada";
+
+
+        const tieneImagen =
+            !esPortada &&
+            Boolean(
+                pagina.imagen
+            );
+
+
+        /* Grupos completos de "Forma de la foto" y "Marco": se
+           ocultan del todo en la portada, porque ahí no aplican. */
+        const grupoForma =
+            document.getElementById(
+                "grupo-forma-foto"
+            )?.closest(".editor__estilo-grupo");
+
+
+        const grupoMarco =
+            document.getElementById(
+                "grupo-marco-foto"
+            )?.closest(".editor__estilo-grupo");
+
+
+        if (grupoForma) {
+
+            grupoForma.hidden =
+                esPortada;
+
+        }
+
+
+        if (grupoMarco) {
+
+            grupoMarco.hidden =
+                esPortada;
+
+        }
+
+
+        if (avisoSinFoto) {
+
+            avisoSinFoto.hidden =
+                esPortada || tieneImagen;
+
+        }
+
+
+        /* "Forma de la foto" y "Marco" solo tienen sentido si la
+           página ya tiene una foto cargada; se deshabilitan hasta
+           entonces (o directamente en la portada), con un aviso
+           explicando por qué. */
+        [...botonesForma, ...botonesMarco].forEach(
+            (boton) => {
+
+                boton.disabled =
+                    esPortada || !tieneImagen;
+
+
+                if (esPortada || !tieneImagen) {
+
+                    boton.dataset.tooltip =
+                        "Agrega una foto primero";
+
+                } else {
+
+                    delete boton.dataset.tooltip;
+
+                }
+
+            }
+        );
 
 
         botonesForma.forEach(
@@ -2404,6 +2914,10 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
         );
 
 
+        const pagina =
+            paginas[0];
+
+
         const wrap =
             document.createElement(
                 "div"
@@ -2429,7 +2943,7 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
 
         titulo.value =
-            paginas[0].titulo ||
+            pagina.titulo ||
             "";
 
 
@@ -2437,7 +2951,7 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
             "input",
             () => {
 
-                paginas[0].titulo =
+                pagina.titulo =
                     titulo.value;
 
             }
@@ -2459,7 +2973,7 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
 
         subtitulo.value =
-            paginas[0].subtitulo ||
+            pagina.subtitulo ||
             "";
 
 
@@ -2467,10 +2981,25 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
             "input",
             () => {
 
-                paginas[0].subtitulo =
+                pagina.subtitulo =
                     subtitulo.value;
 
             }
+        );
+
+
+        /* Mismo estilo (alineación/negrita/cursiva) que se elige
+           en el panel de estilo, aplicado al título y subtítulo
+           editables de la portada. */
+        aplicarEstiloTexto(
+            titulo,
+            pagina
+        );
+
+
+        aplicarEstiloTexto(
+            subtitulo,
+            pagina
         );
 
 
@@ -2742,7 +3271,7 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
     btnEliminarPagina.addEventListener(
         "click",
-        () => {
+        async () => {
 
             if (
                 paginas[paginaActual].tipo ===
@@ -2759,9 +3288,20 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
 
             const confirmar =
-                window.confirm(
-                    "¿Eliminar esta página? El texto y la foto se perderán."
-                );
+                await pedirConfirmacion({
+
+                    titulo: "¿Desea eliminar esta página?",
+
+                    mensaje:
+                        "El texto y la foto de esta página se perderán para siempre.",
+
+                    textoConfirmar: "Sí, eliminar página",
+
+                    textoCancelar: "Cancelar",
+
+                    peligro: true
+
+                });
 
 
             if (!confirmar) return;
@@ -2965,6 +3505,21 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
                 "";
 
 
+            /* Mismo estilo (alineación/negrita/cursiva) que se ve
+               en el editor, para que la vista previa y el PDF
+               coincidan con lo que la persona configuró. */
+            aplicarEstiloTexto(
+                titulo,
+                pagina
+            );
+
+
+            aplicarEstiloTexto(
+                subtitulo,
+                pagina
+            );
+
+
             cover.append(
                 titulo,
                 subtitulo
@@ -3064,6 +3619,58 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
        ===================================================== */
 
     let previewIndice = 0;
+
+
+    /* Ancho (en px) al que se dibuja cada hoja de la vista previa
+       antes de encogerla con transform: scale(). Tiene que ser el
+       MISMO ancho que se usa al generar el PDF (ver descargarPDF,
+       donde hojaPreview.style.width = "816px"), así el navegador
+       calcula el tamaño del texto (unidades cqw) de forma
+       idéntica en ambos casos. Sin esto, la vista previa calculaba
+       el texto sobre el ancho angosto de la pantalla del celular
+       y el PDF sobre 816px, dando tamaños de letra muy distintos
+       aunque el CSS fuera "el mismo". */
+    const REFERENCIA_ANCHO_PREVIEW = 816;
+
+
+    /* Mide el ancho real disponible del visor (previewStage) y
+       fija --preview-scale para encoger la hoja de 816px a ese
+       tamaño, sin afectar cómo se calculó el texto por dentro. */
+    function actualizarEscalaPreview() {
+
+        if (!previewStage) return;
+
+
+        const ancho =
+            previewStage.clientWidth;
+
+
+        if (!ancho) return;
+
+
+        const escala =
+            ancho /
+            REFERENCIA_ANCHO_PREVIEW;
+
+
+        previewStage.style.setProperty(
+            "--preview-scale",
+            escala
+        );
+
+    }
+
+
+    window.addEventListener(
+        "resize",
+        actualizarEscalaPreview
+    );
+
+
+    window.addEventListener(
+        "orientationchange",
+        actualizarEscalaPreview
+    );
 
 
     function mostrarPaginaPreview(
@@ -3237,10 +3844,24 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
        ABRIR / CERRAR VISTA PREVIA
        ===================================================== */
 
-    function abrirVistaPrevia() {
+    async function abrirVistaPrevia() {
 
         previewIndice =
             paginaActual;
+
+
+        /* Ya se precargó una vez al abrir el libro, pero lo
+           confirmamos de nuevo acá: en una conexión lenta de
+           celular, o si el navegador liberó la imagen de la
+           memoria, no queremos que la vista previa se pinte antes
+           de que la imagen de fondo esté realmente lista. */
+        if (config.fondoTipo === "imagen") {
+
+            await precargarImagen(
+                fondoUrl()
+            );
+
+        }
 
 
         mostrarPaginaPreview(
@@ -3253,6 +3874,21 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
 
         previewScreen.hidden = false;
+
+
+        /* Recién ahora previewStage ya está visible en el DOM
+           (dejó de tener "hidden"), así que su clientWidth es
+           medible de verdad. El doble requestAnimationFrame
+           asegura que el navegador ya terminó de aplicar el
+           layout antes de medir, igual que se hace con la
+           animación de pasar página. */
+        requestAnimationFrame(() => {
+
+            requestAnimationFrame(
+                actualizarEscalaPreview
+            );
+
+        });
 
 
         window.scrollTo({
@@ -3546,8 +4182,7 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
 
         const respuesta =
-            window.prompt(
-                "¿Cómo quieres llamar tu PDF?",
+            await pedirNombreArchivo(
                 nombreSugerido
             );
 
@@ -3704,6 +4339,19 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
                 );
 
 
+                /* html2canvas necesita saber qué color de fondo usar
+                   para el lienzo. "null" (transparente) está bien
+                   para un fondo de foto, pero para un color sólido
+                   personalizado, "null" tapaba justo ese color —
+                   solo sobrevivían las líneas (que son una imagen
+                   aparte). Por eso se lo pasamos explícito acá. */
+                const colorDeFondoParaCanvas =
+                    config.fondoTipo === "color" &&
+                    config.fondoColor
+                        ? config.fondoColor
+                        : null;
+
+
                 const canvas =
                     await html2canvas(
                         hojaPreview,
@@ -3713,7 +4361,8 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
 
                             useCORS: true,
 
-                            backgroundColor: null
+                            backgroundColor:
+                                colorDeFondoParaCanvas
 
                         }
                     );
@@ -3809,6 +4458,19 @@ function agregarSwipe(elemento, onSwipeLeft, onSwipeRight) {
        INICIAR LIBRO
        ===================================================== */
 
-    renderPagina();
+    (async function iniciarLibro() {
+
+        if (config.fondoTipo === "imagen") {
+
+            await precargarImagen(
+                fondoUrl()
+            );
+
+        }
+
+
+        renderPagina();
+
+    })();
 
 })();
